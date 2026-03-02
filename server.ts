@@ -34,15 +34,6 @@ db.exec(`
     referral_code TEXT UNIQUE
   );
 
-  CREATE TABLE IF NOT EXISTS trollbox_messages (
-    id TEXT PRIMARY KEY,
-    user_id TEXT,
-    username TEXT,
-    avatar_seed TEXT,
-    text TEXT,
-    timestamp TEXT
-  );
-
   CREATE TABLE IF NOT EXISTS market_sentiment (
     market_id TEXT,
     user_id TEXT,
@@ -142,120 +133,6 @@ db.exec(`
     FOREIGN KEY(market_id) REFERENCES markets(id)
   );
 `);
-
-// Seed Markets
-const seedMarkets = [
-  {
-    id: "mkt_pol_1",
-    title: "Will the US pass the new Crypto Bill by 2026?",
-    description: "Predicting if the comprehensive cryptocurrency regulation bill will be signed into law before January 1st, 2026.",
-    category: "Politics",
-    end_date: "2025-12-31T23:59:59Z",
-    yes_price: 0.45,
-    volume: 1250000,
-    liquidity: 50000,
-    emoji: "📜",
-    theme_color: "#3B82F6",
-    rules: "Market resolves YES if the bill is signed by the President.",
-    image: "https://picsum.photos/seed/crypto-bill/800/400"
-  },
-  {
-    id: "mkt_pol_2",
-    title: "Next UK Prime Minister to be from Labour?",
-    description: "Betting on the party affiliation of the next individual to hold the office of Prime Minister of the United Kingdom.",
-    category: "Politics",
-    end_date: "2025-06-01T00:00:00Z",
-    yes_price: 0.72,
-    volume: 3400000,
-    liquidity: 120000,
-    emoji: "🇬🇧",
-    theme_color: "#EF4444",
-    rules: "Resolves YES if the next PM is a member of the Labour Party.",
-    image: "https://picsum.photos/seed/uk-politics/800/400"
-  },
-  {
-    id: "mkt_pol_3",
-    title: "Will Taiwan join the UN by 2030?",
-    description: "Long-term prediction market regarding Taiwan's official membership status in the United Nations.",
-    category: "Politics",
-    end_date: "2029-12-31T23:59:59Z",
-    yes_price: 0.15,
-    volume: 890000,
-    liquidity: 25000,
-    emoji: "🇺🇳",
-    theme_color: "#10B981",
-    rules: "Resolves YES if Taiwan becomes a full member state of the UN.",
-    image: "https://picsum.photos/seed/un-taiwan/800/400"
-  },
-  {
-    id: "mkt_pol_4",
-    title: "Global Carbon Tax implementation by G20?",
-    description: "Will the G20 nations agree to and implement a unified global carbon tax framework?",
-    category: "Politics",
-    end_date: "2026-11-15T00:00:00Z",
-    yes_price: 0.33,
-    volume: 2100000,
-    liquidity: 75000,
-    emoji: "🌍",
-    theme_color: "#22C55E",
-    rules: "Resolves YES if a binding agreement is signed by all G20 members.",
-    image: "https://picsum.photos/seed/carbon-tax/800/400"
-  },
-  {
-    id: "mkt_pol_5",
-    title: "Will the EU ban AI surveillance?",
-    description: "Predicting the outcome of the EU AI Act regarding the use of real-time remote biometric identification systems.",
-    category: "Politics",
-    end_date: "2025-08-01T00:00:00Z",
-    yes_price: 0.60,
-    volume: 1800000,
-    liquidity: 60000,
-    emoji: "🤖",
-    theme_color: "#6366F1",
-    rules: "Resolves YES if the final act includes a total ban on real-time RBI.",
-    image: "https://picsum.photos/seed/ai-ban/800/400"
-  },
-  {
-    id: "mkt_eco_1",
-    title: "Bitcoin to hit $150k by Q4 2025?",
-    description: "Market for Bitcoin price action. Will BTC/USD trade at or above $150,000 on any major exchange?",
-    category: "Crypto",
-    end_date: "2025-12-31T23:59:59Z",
-    yes_price: 0.55,
-    volume: 5600000,
-    liquidity: 200000,
-    emoji: "🚀",
-    theme_color: "#F59E0B",
-    rules: "Resolves YES if BTC touches $150k on Coinbase or Binance.",
-    image: "https://picsum.photos/seed/bitcoin-moon/800/400"
-  }
-];
-
-const insertMarket = db.prepare(`
-  INSERT OR IGNORE INTO markets (id, title, description, category, end_date, yes_price, volume, liquidity, emoji, theme_color, rules, image)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`);
-
-const checkMarket = db.prepare("SELECT id FROM markets WHERE id = ?");
-
-for (const m of seedMarkets) {
-  const exists = checkMarket.get(m.id);
-  if (!exists) {
-    insertMarket.run(m.id, m.title, m.description, m.category, m.end_date, m.yes_price, m.volume, m.liquidity, m.emoji, m.theme_color, m.rules, m.image);
-    
-    // Seed some history
-    const historyStmt = db.prepare("INSERT INTO market_history (market_id, date, price) VALUES (?, ?, ?)");
-    let price = m.yes_price;
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      price = price + (Math.random() * 0.1 - 0.05);
-      if (price > 0.99) price = 0.99;
-      if (price < 0.01) price = 0.01;
-      historyStmt.run(m.id, date.toISOString(), price);
-    }
-  }
-}
 
 async function startServer() {
   const app = express();
@@ -745,29 +622,6 @@ async function startServer() {
     })();
     
     res.json({ success: true });
-  });
-
-  // --- Trollbox API ---
-  app.get("/api/trollbox", (req, res) => {
-    try {
-      const messages = db.prepare("SELECT * FROM trollbox_messages ORDER BY timestamp DESC LIMIT 50").all();
-      res.json(messages.reverse());
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
-  });
-
-  app.post("/api/trollbox", (req, res) => {
-    const { id, userId, username, avatarSeed, text, timestamp } = req.body;
-    try {
-      db.prepare(`
-        INSERT INTO trollbox_messages (id, user_id, username, avatar_seed, text, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(id, userId, username, avatarSeed, text, timestamp);
-      res.json({ success: true });
-    } catch (err) {
-      res.status(500).json({ error: "Database error" });
-    }
   });
 
   // --- Sentiment API ---

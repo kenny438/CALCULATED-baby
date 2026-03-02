@@ -15,7 +15,6 @@ import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useToast } from "./components/ui/Toast";
 import { useAuth } from "./contexts/AuthContext";
 import { Auth } from "./components/Auth";
-import { OnboardingModal } from "./components/OnboardingModal";
 import { Leaderboard } from "./components/Leaderboard";
 import { Groups } from "./components/Groups";
 import { TermsOfService } from "./components/TermsOfService";
@@ -103,7 +102,7 @@ export default function App() {
                 bio: DEFAULT_PROFILE.bio,
                 avatarSeed: DEFAULT_PROFILE.avatarSeed,
                 balance: 10000,
-                onboardingCompleted: false,
+                onboardingCompleted: true,
                 isAdmin: isAdmin,
                 joinedDate: new Date().toISOString()
               })
@@ -502,15 +501,6 @@ export default function App() {
       });
     }
   }, [session, userProfile.onboardingCompleted, userProfile.username, userProfile.bio, userProfile.avatarSeed, isInitialSyncDone]);
-
-  const handleOnboardingComplete = (data: Partial<UserProfile>) => {
-    setUserProfile(prev => ({
-      ...prev,
-      ...data,
-      onboardingCompleted: true
-    }));
-    addToast("Profile setup complete!", "success");
-  };
 
   // Simulate market movement (only for active session to keep it alive)
   // REMOVED: Fake market movement simulation
@@ -1203,10 +1193,6 @@ export default function App() {
 
   if (!session) {
     return <Auth />;
-  }
-
-  if (!userProfile.onboardingCompleted) {
-    return <OnboardingModal onComplete={handleOnboardingComplete} initialEmail={session.user.email!} />;
   }
 
   const userStats = {

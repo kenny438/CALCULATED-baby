@@ -9,10 +9,17 @@ export function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isOver12, setIsOver12] = useState(false);
   const { addToast } = useToast();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSignUp && !isOver12) {
+      addToast('You must be at least 12 years old to join.', 'error');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -88,6 +95,23 @@ export function Auth() {
               />
             </div>
           </div>
+
+          {isSignUp && (
+            <div className="flex items-start gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+              <div className="flex items-center h-5">
+                <input
+                  id="age-check"
+                  type="checkbox"
+                  checked={isOver12}
+                  onChange={(e) => setIsOver12(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+                />
+              </div>
+              <label htmlFor="age-check" className="text-xs text-gray-600 cursor-pointer select-none">
+                I certify that I am at least <span className="font-bold text-gray-900">12 years of age</span> and agree to the Terms of Service.
+              </label>
+            </div>
+          )}
 
           <button
             type="submit"

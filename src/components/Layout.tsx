@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Bell, Menu, Trophy, ChevronDown, X, LogOut, BadgeCheck, Activity, Zap, Keyboard } from "lucide-react";
+import { Search, Bell, Menu, Trophy, ChevronDown, X, LogOut, BadgeCheck, Activity, Zap } from "lucide-react";
 import { cn, formatCurrency } from "../lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import { useToast } from "./ui/Toast";

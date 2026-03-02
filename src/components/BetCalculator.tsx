@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Market } from "../data/mockData";
 import { formatCurrency, formatPercent } from "../lib/utils";
 import { X, Calculator } from "lucide-react";
+import { motion } from "motion/react";
 
 interface BetCalculatorProps {
   market: Market;
@@ -20,7 +21,12 @@ export function BetCalculator({ market, onClose }: BetCalculatorProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+      >
         <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
           <div className="flex items-center gap-2">
             <Calculator className="w-5 h-5 text-emerald-600" />
@@ -89,7 +95,7 @@ export function BetCalculator({ market, onClose }: BetCalculatorProps) {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
